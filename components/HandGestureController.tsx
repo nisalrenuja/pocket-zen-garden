@@ -6,7 +6,8 @@ import {
   FilesetResolver,
   DrawingUtils,
 } from "@mediapipe/tasks-vision";
-import { HandFrame, Landmark } from "@/types";
+import { HandFrame } from "@/types";
+import type { Landmark } from "@/types";
 import { MEDIAPIPE_CONFIG, VIDEO_CONFIG, DRAWING_STYLES } from "@/constants";
 import { processLandmarks } from "@/lib/mediapipe";
 import { useAudioFeedback } from "@/hooks";
@@ -113,20 +114,20 @@ export default function HandGestureController({ onHandFrame }: HandGestureContro
       const drawingUtils = new DrawingUtils(canvasCtx);
 
       if (results.landmarks && results.landmarks.length > 0) {
-        const landmarks = results.landmarks[0] as Landmark[];
+        const rawLandmarks = results.landmarks[0];
         lastHandSeenRef.current = startTimeMs;
         handPresentRef.current = true;
 
-        drawingUtils.drawConnectors(landmarks, HandLandmarker.HAND_CONNECTIONS, {
+        drawingUtils.drawConnectors(rawLandmarks, HandLandmarker.HAND_CONNECTIONS, {
           color: DRAWING_STYLES.CONNECTOR_COLOR,
           lineWidth: DRAWING_STYLES.CONNECTOR_WIDTH,
         });
-        drawingUtils.drawLandmarks(landmarks, {
+        drawingUtils.drawLandmarks(rawLandmarks, {
           color: DRAWING_STYLES.LANDMARK_COLOR,
           lineWidth: DRAWING_STYLES.LANDMARK_WIDTH,
         });
 
-        const frame = processLandmarks(landmarks);
+        const frame = processLandmarks(rawLandmarks as Landmark[]);
 
         if (frame.pinch && !prevPinchRef.current) playGrab();
         else if (!frame.pinch && prevPinchRef.current) playRelease();
