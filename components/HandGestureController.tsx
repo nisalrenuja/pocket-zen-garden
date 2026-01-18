@@ -20,6 +20,7 @@ import {
   detectFist,
   detectPeace,
 } from "@/lib/mediapipe";
+import { useAudioFeedback } from "@/hooks";
 
 interface HandGestureControllerProps {
   onHandFrame: (frame: HandFrame) => void;
@@ -45,6 +46,14 @@ export default function HandGestureController({ onHandFrame }: HandGestureContro
   const handLandmarkerRef = useRef<HandLandmarker | null>(null);
   const lastHandSeenRef = useRef<number>(0);
   const handPresentRef = useRef<boolean>(false);
+  
+  // Previous state trackers for audio triggers
+  const prevPinchRef = useRef<boolean>(false);
+  const prevFistRef = useRef<boolean>(false);
+  const prevPeaceRef = useRef<boolean>(false);
+
+  // Audio hook
+  const { playGrab, playRelease, playMagic, playWind, preloadSounds, initAudio } = useAudioFeedback();
 
   useEffect(() => {
     let handLandmarker: HandLandmarker;
@@ -64,6 +73,10 @@ export default function HandGestureController({ onHandFrame }: HandGestureContro
       handLandmarkerRef.current = handLandmarker;
       setIsLoaded(true);
       startCamera();
+      
+      // Initialize audio on first successful load/interaction potential
+      preloadSounds();
+      document.addEventListener('click', initAudio, { once: true });
     };
 
     createHandLandmarker();
@@ -74,7 +87,7 @@ export default function HandGestureController({ onHandFrame }: HandGestureContro
       }
       cancelAnimationFrame(requestRef.current);
     };
-  }, []);
+  }, [preloadSounds, initAudio]);
 
   const startCamera = async () => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -144,6 +157,27 @@ export default function HandGestureController({ onHandFrame }: HandGestureContro
         const pinch = detectPinch(thumbTip, indexTip);
         const fist = detectFist(indexExt, middleExt, ringExt, pinkyExt);
         const peace = detectPeace(indexExt, middleExt, ringExt, pinkyExt);
+        
+        // --- Audio Triggers ---
+        if (pinch && !prevPinchRef.current) {
+          playGrab();
+        } else if (!pinch && prevPinchRef.current) {
+          playRelease();
+        }
+
+        if (fist && !prevFistRef.current) {
+          playMagic();
+        }
+
+        if (peace && !prevPeaceRef.current) {
+          playWind();
+        }
+
+        // Update refs
+        prevPinchRef.current = pinch;
+        prevFistRef.current = fist;
+        prevPeaceRef.current = peace;
+        // ----------------------
 
         // Emit Frame
         onHandFrame({
@@ -176,6 +210,11 @@ export default function HandGestureController({ onHandFrame }: HandGestureContro
         const timeSinceHandSeen = startTimeMs - lastHandSeenRef.current;
         if (handPresentRef.current && timeSinceHandSeen > HAND_LOST_TIMEOUT_MS) {
           handPresentRef.current = false;
+          // Reset gesture refs
+          prevPinchRef.current = false;
+          prevFistRef.current = false;
+          prevPeaceRef.current = false;
+          
           onHandFrame(NEUTRAL_FRAME);
           // Update debug panel
           const debugEl = document.getElementById('gesture-debug');
@@ -211,13 +250,6 @@ export default function HandGestureController({ onHandFrame }: HandGestureContro
           height={VIDEO_CONFIG.CANVAS_HEIGHT}
         />
       </div>
-      {/* Gesture status panel */}
-      {/* <div className="fixed top-4 left-4 bg-black/50 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-xs z-50 pointer-events-none">
-        <div className="font-semibold mb-1">Gesture Status</div>
-        <div id="gesture-debug" className="opacity-80">
-          Show your hand to start
-        </div>
-      </div> */}
     </>
   );
 }

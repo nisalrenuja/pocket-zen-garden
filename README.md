@@ -16,6 +16,7 @@ A magical, interactive 3D Pocket Garden simulator that you control with your han
     - **Dynamic Shadows**: high-quality shadows that respond to the light source.
     - **Animated Stone Dropping**: Smooth physics-based stone placement with realistic dropping animations.
     - **Raking**: Draw patterns in the sand using your fingers.
+- **Audio Feedback**: Immersive sound effects that respond to your gestures (Grabbing, Time Control, Raking).
 - **Webcam Overlay**: See your hand landmarks in real-time for easier control.
 
 ## 🎮 Controls
@@ -25,10 +26,10 @@ The garden is controlled entirely by your hand movements captured via webcam.
 | Gesture | Action | Description |
 | :--- | :--- | :--- |
 | **Open Hand Tilt** | **Rotate View** | Tilt your open palm left or right to rotate the camera around the garden. |
-| **Pinch** (Thumb + Index) | **Levitate Stone** | Pinch over a stone to grab and levitate it. Move your hand to reposition it. |
-| **Peace Sign** (✌️) | **Rake Sand** | Extend your index and middle fingers to draw trails in the sand. |
-| **Fist (High)** | **Time Control** | Make a fist in the *upper* part of the screen and move horizontally to change the time of day (Day ↔ Night). |
-| **Fist (Low)** | **Stop Rotation** | Make a fist in the *lower* part of the screen to lock the garden's rotation. |
+| **Pinch** (Thumb + Index) | **Levitate Stone** | Pinch over a stone to grab and levitate it. Move your hand to reposition it. **(Sound: Pop/Release)** |
+| **Peace Sign** (✌️) | **Rake Sand** | Extend your index and middle fingers to draw trails in the sand. **(Sound: White Noise)** |
+| **Fist (High)** | **Time Control** | Make a fist in the *upper* part of the screen and move horizontally to change the time of day (Day ↔ Night). **(Sound: Magic Hum)** |
+| **Fist (Low)** | **Stop Rotation** | Make a fist in the *lower* part of the screen to lock the garden's rotation. **(Sound: Magic Hum)** |
 
 ## 🛠️ Tech Stack
 
@@ -106,6 +107,7 @@ pocket-zen-garden/
 ├── types/                      # TypeScript type definitions
 │   └── index.ts               # Shared interfaces
 └── public/                     # Static assets
+    └── sounds/                 # Audio files for gesture feedback
 ```
 
 ## 🏗️ Architecture
@@ -137,6 +139,7 @@ User Hand Gesture
   │ useStoneLevitation │
   │ useSandRaking      │
   │ useTimeControl     │
+  │ useAudioFeedback   │
   └────────────────────┘
       ↓
   ┌────────────────────┐
